@@ -16,5 +16,7 @@ namespace wsbMvcApp.Data
 
         public DbSet<Meal> Meal { get; set; } = default!;
 
+        public DbSet<wsbMvcApp.Models.User> User { get; set; } = default!;
+
     }
 }

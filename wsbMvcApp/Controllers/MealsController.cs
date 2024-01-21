@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using wsbMvcApp.Models;
 
 namespace wsbMvcApp.Controllers
 {
+    [Authorize]
     public class MealsController : Controller
     {
         private readonly wsbMvcAppContext _context;
@@ -58,12 +60,33 @@ namespace wsbMvcApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description")] Meal meal)
         {
-            if (ModelState.IsValid)
+            var userId = HttpContext.Session.GetString("UserId");
+
+            if (userId != null)
             {
-                _context.Add(meal);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (int.TryParse(userId, out int userIdInt))
+                {
+                    var user = await _context.User.FindAsync(userIdInt);
+
+                    if (user != null)
+                    {
+                        meal.User = user;
+                        _context.Add(meal);
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction(nameof(Index));
+                        
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Nie znaleziono użytkownika o podanym identyfikatorze.");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Błąd podczas przetwarzania identyfikatora użytkownika.");
+                }
             }
+
             return View(meal);
         }
 
@@ -99,6 +122,12 @@ namespace wsbMvcApp.Controllers
             {
                 try
                 {
+                    var userId = HttpContext.Session.GetString("UserId");
+                    if (userId != null)
+                    {
+                        meal.UserId = int.Parse(userId);
+                    }
+
                     _context.Update(meal);
                     await _context.SaveChangesAsync();
                 }

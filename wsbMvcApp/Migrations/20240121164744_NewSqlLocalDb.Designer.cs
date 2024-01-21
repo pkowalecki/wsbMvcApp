@@ -11,8 +11,8 @@ using wsbMvcApp.Data;
 namespace wsbMvcApp.Migrations
 {
     [DbContext(typeof(wsbMvcAppContext))]
-    [Migration("20240121001020_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240121164744_NewSqlLocalDb")]
+    partial class NewSqlLocalDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,22 +32,18 @@ namespace wsbMvcApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CreatedByUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CreatedByUserId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedByUserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Meal");
                 });
@@ -75,13 +71,18 @@ namespace wsbMvcApp.Migrations
 
             modelBuilder.Entity("wsbMvcApp.Models.Meal", b =>
                 {
-                    b.HasOne("wsbMvcApp.Models.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId1")
+                    b.HasOne("wsbMvcApp.Models.User", "User")
+                        .WithMany("Meals")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedByUser");
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("wsbMvcApp.Models.User", b =>
+                {
+                    b.Navigation("Meals");
                 });
 #pragma warning restore 612, 618
         }
